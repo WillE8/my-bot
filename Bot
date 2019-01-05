@@ -1,0 +1,159 @@
+import discord
+from discord.ext.commands import Bot
+from discord.ext import commands
+import asyncio
+import time
+import random
+
+client = commands.Bot(command_prefix = ".")
+
+@client.event
+async def on_ready():
+    print ("Bot is ready!")
+    await client.change_presence(game=discord.Game(name="Discord | .help"))
+
+def multiply(numbers):  
+    total = 1
+    for x in numbers:
+        total *= x  
+    return total
+
+@client.event
+async def on_message(message):
+    if message.content.upper().startswith(".HELP"):
+        embed = discord.Embed(
+            title = "**Will's Chat Sweeper Help**",
+            description = "Make sure to always use . before a command!",
+            colour = discord.Colour.orange())
+        embed.add_field(name=".dice (Number Of Sides)", value="Rolls a dice with a choice of the amount of sides.", inline=True)
+        embed.add_field(name=".embed (Text)", value="Creates an embed box with a message of your choice.", inline=True)
+        embed.add_field(name=".calc", value="A calculator that gives the option to what operation you want.", inline=True)
+        embed.add_field(name="Chat Filter", value="This bot also deletes any rude messages, so don't swear!", inline=True)
+        await client.send_message(message.channel, embed = embed)
+    if message.content.upper().startswith(".EMBED"):
+        embed = discord.Embed(
+            title = "**Message:**",
+            description = message.content[7:],
+            colour = discord.Colour.green())
+        if "526035746352660492" in [role.id for role in message.author.roles]:
+            if " " in message.content:
+                message.content.split() 
+                AuthorName = message.author.name
+                pfp = message.author.avatar_url
+                embed.set_author(name = AuthorName, icon_url= pfp)
+                await client.send_message(client.get_channel("526100768307150850"), embed = embed)
+            else:
+                await client.send_message(message.channel, "`Correct Usage: .embed (Message)`")
+        else:
+            await client.send_message(message.channel, "You must be Staff to do this!")
+
+    if message.content.upper().startswith(".DICE"):
+        if " " in message.content:    
+            num2 = int(message.content[6:])
+            dicenum = random.randint(1,num2)
+            dice = "You rolled: "+str(dicenum)
+            await client.send_message(message.channel, dice)
+        else:
+            await client.send_message(message.channel, "`Correct Usage: .dice (Number Of Sides)`")
+
+
+    cfilter = ["FUCK", "SHIT"]
+    for word in message.content.upper().split():
+        if word in cfilter:
+            await client.delete_message(message)
+            msg = await client.send_message(message.channel, "You are not allowed to say that!")
+            time.sleep(3)
+            await client.delete_message(msg)
+
+    if message.content.upper().startswith(".CALC"):
+        await client.send_message(message.channel, "Please pick an operation: + - / x ")
+        operation = await client.wait_for_message(author=message.author)
+        if operation.clean_content == "+":
+            await client.send_message(message.channel, "Please enter your sum.")
+            usersum = await client.wait_for_message(author=message.author)
+            ssum = usersum.clean_content.replace(" ", "")
+            ggg = ssum.replace("+", " ")
+            c = ggg.split(" ")
+            results = list(map(int, c))
+            await client.send_message(message.channel, "Result = "+str(sum(results)))
+        elif operation.clean_content == "-":
+            await client.send_message(message.channel, "Please enter your sum.")
+            usersum = await client.wait_for_message(author=message.author)
+            ssum = usersum.clean_content.replace(" ", "")
+            ggg = ssum.replace("-", " ")
+            c = ggg.split(" ")
+            results = list(map(int, c))
+            answer = results[0] - sum(results[1:])
+            await client.send_message(message.channel, "Result = "+str(answer))
+        elif operation.clean_content == "x":
+            await client.send_message(message.channel, "Please enter your sum.")
+            usersum = await client.wait_for_message(author=message.author)
+            ssum = usersum.clean_content.replace(" ", "")
+            ggg = ssum.replace("x", " ")
+            c = ggg.split(" ")
+            results = list(map(int, c))
+            await client.send_message(message.channel, "Result = "+str(multiply(results)))
+        elif operation.clean_content == "/":
+            await client.send_message(message.channel, "Please enter your sum.")
+            usersum = await client.wait_for_message(author=message.author)
+            ssum = usersum.clean_content.replace(" ", "")
+            ggg = ssum.replace("/", " ")
+            c = ggg.split(" ")
+            if len(c) > 2:
+                await client.send_message(message.channel, "Sorry, I can only divide 2 numbers.")
+            else: 
+                results = list(map(int, c))
+                await client.send_message(message.channel, "Result = "+str(results[0] / results[1]))
+
+    if message.content.upper().startswith(".RATE"):
+        rating = random.randint(1,100)
+        if "will" in message.content:
+            rating = 100
+        await client.send_message(message.channel, message.content[6:]+" is "+str(rating)+"% hot!")
+
+    if message.content.upper().startswith(".LUCK"):
+        luck = random.randint(1,1000)
+        await client.send_message(message.channel, "You are testing your luck!")
+        time.sleep(0.5)
+        await client.send_message(message.channel, "Let's hope you win!")
+        time.sleep(0.5)
+        await client.send_message(message.channel, "Your number is: "+str(luck))
+        if luck >= 0 and luck <= 5: 
+            await client.send_message(message.channel, "You won King Role! (Legendary) :heart_eyes:")
+            role = discord.utils.get(message.author.server.roles, name = "King")
+            await client.add_roles(message.author, role)
+        elif luck >= 6 and luck <= 20 : 
+            await client.send_message(message.channel, "You won Prince Role! (Epic) :yum:")
+            role = discord.utils.get(message.author.server.roles, name = "Prince")
+            await client.add_roles(message.author, role)
+        elif luck == 1000:
+            await client.send_message(message.channel, "You won Emperor Role! (Mythic) :money_mouth:")
+            role = discord.utils.get(message.author.server.roles, name = "Emperor")
+            await client.add_roles(message.author, role)
+        elif luck > 20 and luck <= 100 : 
+            await client.send_message(message.channel, "You won Knight Role! (Uncommon) :slight_smile:")
+            role = discord.utils.get(message.author.server.roles, name = "Knight")
+            await client.add_roles(message.author, role)
+        elif luck == 69:
+            await client.send_message(message.channel, "You won Memelord Role! (Mythic) :wink:")
+            role = discord.utils.get(message.author.server.roles, name = "Knight")
+        else:
+            await client.send_message(message.channel, "Sadly you didn't win anything. :cry:")
+
+    if message.content.upper().startswith(".REWARDS"):
+        embed = discord.Embed(
+            title = "**Luck Rewards**",
+            description = "These are the potential rewards for .luck",
+            colour = 0xff04f0)
+        embed.add_field(name="0-5", value="If your number is between 0 and 5 you get a legendary role, King.", inline=True)
+        embed.add_field(name="6-20", value="If your number is between 6 and 20 you win an epic role, Prince.", inline=True)
+        embed.add_field(name="21-100", value="If your number is between 21 and 100 you win an uncommon role, Knight.", inline=True)
+        embed.add_field(name="69", value="If your number is 69, you win a mythic role, Memelord.", inline=True)
+        embed.add_field(name="1000", value="If your number is 1000, you win a mythic role, Emperor.", inline=True)
+        embed.add_field(name="Anything Else", value="If your number is not one of those, you win nothing.", inline=True)
+        await client.send_message(message.channel, embed = embed)
+        
+            
+                 
+
+client.run("TOKEN")
